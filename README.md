@@ -39,13 +39,30 @@ This project is a secure, token-based URL shortening service built using Spring 
 ### Project Structure
 
 ```
-src/
-├── main/
-│   ├── java/
-│   │   └── UrlShortenerApplication.java
-│   └── resources/
-│       └── application.properties
-├── pom.xml
+└── 221501135
+    └── demo
+        ├── HELP.md
+        ├── mvnw
+        ├── mvnw.cmd
+        ├── pom.xml
+        ├── src
+            ├── main
+            │   ├── java
+            │   │   └── demo
+            │   │   │   └── example
+            │   │   │       └── demo
+            │   │   │           └── DemoApplication.java
+            │   └── resources
+            │   │   └── application.properties
+            └── test
+            │   └── java
+            │       └── demo
+            │           └── example
+            │               └── demo
+            │                   └── DemoApplicationTests.java
+        └── target
+            └── classes
+                └── application.properties
 ```
 
 ---
