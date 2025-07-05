@@ -1,3 +1,4 @@
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,14 @@ public class UrlShortenerApplication {
     private static final Logger logger = LoggerFactory.getLogger(UrlShortenerApplication.class);
     private Map<String, UrlData> urlMap = new HashMap<>();
     private Map<String, Integer> clickData = new HashMap<>();
+    // Simulated credential store (clientID -> clientSecret)
+    private Map<String, String> authCredentials = new HashMap<>();
 
     public static void main(String[] args) {
         SpringApplication.run(UrlShortenerApplication.class, args);
+        // Preload some example credentials (mimic Registration API output)
+        authCredentials.put("user1", "pass123");
+        authCredentials.put("user2", "secret456");
     }
 
     static class UrlData {
@@ -30,6 +36,24 @@ public class UrlShortenerApplication {
             this.originalUrl = originalUrl;
             this.expiry = expiry;
         }
+    }
+
+    // Login endpoint to authenticate and issue Bearer token
+    @PostMapping("/login")
+    public Map<String, String> login(@RequestBody Map<String, String> credentials) {
+        logger.info("Login attempt with credentials: {}", credentials);
+        String clientID = credentials.get("clientID");
+        String clientSecret = credentials.get("clientSecret");
+
+        if (clientID != null && clientSecret != null && authCredentials.containsKey(clientID) && authCredentials.get(clientID).equals(clientSecret)) {
+            String token = "Bearer " + UUID.randomUUID().toString(); // Generate a simple Bearer token
+            return Map.of(
+                "token_type", "Bearer",
+                "access_token", token,
+                "expires_in", "3600" // Token valid for 1 hour (3600 seconds)
+            );
+        }
+        return Map.of("error", "Invalid clientID or clientSecret");
     }
 
     private String generateShortCode() {
@@ -68,10 +92,10 @@ public class UrlShortenerApplication {
         Instant expiry = Instant.now().plus(validity, ChronoUnit.MINUTES);
         urlMap.put(code, new UrlData(url, expiry));
 
-        Map<String, String> response = new HashMap<>();
-        response.put("shortlink", "http://localhost:8080/shorturl/" + code);
-        response.put("expiry", expiry.toString());
-        return response;
+        return Map.of(
+            "shortlink", "http://localhost:8080/shorturl/" + code,
+            "expiry", expiry.toString()
+        );
     }
 
     @GetMapping("/{shortcode}")
@@ -103,6 +127,6 @@ public class UrlShortenerApplication {
         }
 
         clickData.put(shortcode, clickData.getOrDefault(shortcode, 0) + 1);
-        return "Redirecting to: " + data.originalUrl;
+        return "Redirecting to: " + data.originalUrl; // Note: Use ResponseEntity for 301 redirect in production
     }
 }
